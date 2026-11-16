@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RDR2 100% Completion Ledger & Field Guide</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        rdr: {
+                            dark: '#12100e',
+                            card: '#1c1815',
+                            cardHover: '#26211c',
+                            border: '#3d3229',
+                            gold: '#c5a059',
+                            goldHover: '#d4af37',
+                            red: '#8b0000',
+                            paper: '#f4ebd0',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Western Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #12100e;
+            color: #d1d5db;
+        }
+
+        h1, h2, h3, .cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Custom scrollbar for immersive western ledger feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #12100e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3d3229;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c5a059;
+        }
+
+        .parchment-glow {
+            box-shadow: 0 0 25px rgba(197, 160, 89, 0.15);
+        }
+        
+        .tab-active {
+            border-bottom: 2px solid #c5a059;
+            color: #c5a059;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-rdr-dark text-gray-200">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-rdr-card border-b border-rdr-border sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded bg-rdr-red flex items-center justify-center border border-rdr-gold shadow">
+                    <i class="fa-solid fa-hat-cowboy text-rdr-gold text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-wider text-rdr-paper cinzel">RDR2 100% Ledger</h1>
+                    <p class="text-xs text-rdr-gold uppercase tracking-widest">Official Completion & Field Guide Tracker</p>
+                </div>
+            </div>
+
+            <!-- Global Progress Bar -->
+            <div class="flex items-center gap-4 w-full md:w-auto bg-rdr-dark/60 px-4 py-2 rounded-lg border border-rdr-border">
+                <div class="text-right">
+                    <span class="text-xs text-gray-400 block">Total Progress</span>
+                    <span id="global-percentage" class="text-lg font-bold text-rdr-gold cinzel">0.0%</span>
+                </div>
+                <div class="w-36 sm:w-48 bg-gray-800 h-3 rounded-full overflow-hidden border border-rdr-border">
+                    <div id="global-progress-bar" class="bg-gradient-to-r from-amber-700 to-rdr-gold h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <button onclick="resetDataModal()" class="text-xs text-gray-400 hover:text-red-400 p-1 transition" title="Reset All Progress">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto space-x-6 text-sm font-medium border-t border-rdr-border/50">
+            <button onclick="switchTab('overview')" id="nav-overview" class="tab-btn py-3 px-1 transition text-gray-400 hover:text-rdr-gold whitespace-nowrap flex items-center gap-2 tab-active">
+                <i class="fa-solid fa-chart-pie"></i> Overview
+            </button>
+            <button onclick="switchTab('weapons')" id="nav-weapons" class="tab-btn py-3 px-1 transition text-gray-400 hover:text-rdr-gold whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-gun"></i> Weapons (<span id="count-weapons-nav">0</span>/64)
+            </button>
+            <button onclick="switchTab('equipment')" id="nav-equipment" class="tab-btn py-3 px-1 transition text-gray-400 hover:text-rdr-gold whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved"></i> Equipment (<span id="count-equipment-nav">0</span>/77)
+            </button>
+            <button onclick="switchTab('story')" id="nav-story" class="tab-btn py-3 px-1 transition text-gray-400 hover:text-rdr-gold whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-book-open"></i> Story Missions (<span id="count-story-nav">0</span>/104)
+            </button>
+            <button onclick="switchTab('challenges')" id="nav-challenges" class="tab-btn py-3 px-1 transition text-gray-400 hover:text-rdr-gold whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-trophy"></i> Challenges (<span id="count-challenges-nav">0</span>/90)
+            </button>
+            <button onclick="switchTab('collectibles')" id="nav-collectibles" class="tab-btn py-3 px-1 transition text-gray-400 hover:text-rdr-gold whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-gem"></i> 100% Checklist (<span id="count-checklist-nav">0</span>/26)
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- OVERVIEW TAB -->
+        <section id="tab-content-overview" class="tab-content space-y-6">
+            <div class="bg-rdr-card border border-rdr-border rounded-xl p-6 parchment-glow relative overflow-hidden">
+                <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 opacity-10 pointer-events-none">
+                    <i class="fa-solid fa-compass text-9xl text-rdr-gold"></i>
+                </div>
+                <h2 class="text-2xl font-bold cinzel text-rdr-paper mb-2">Welcome to Red Dead Redemption 2 100% Completion Tracker</h2>
+                <p class="text-gray-300 max-w-3xl leading-relaxed text-sm sm:text-base">
+                    Track your journey across Arthur Morgan and John Marston's epic saga. This tracker covers exact compendium stats including all <strong class="text-rdr-gold">64 Weapons</strong> and exact <strong class="text-rdr-gold">77 Equipment Items</strong>, Story Missions, Master Hunter / Explorer / Survivalist Challenges, and official 100% requirements. Data is automatically saved to your browser storage.
+                </p>
+                <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div onclick="switchTab('weapons')" class="bg-rdr-dark/60 border border-rdr-border p-4 rounded-lg cursor-pointer hover:border-rdr-gold transition">
+                        <span class="text-xs text-gray-400 block uppercase">Weapons Found</span>
+                        <span id="stat-weapons" class="text-2xl font-bold text-rdr-gold cinzel">0 / 64</span>
+                    </div>
+                    <div onclick="switchTab('equipment')" class="bg-rdr-dark/60 border border-rdr-border p-4 rounded-lg cursor-pointer hover:border-rdr-gold transition">
+                        <span class="text-xs text-gray-400 block uppercase">Equipment Acquired</span>
+                        <span id="stat-equipment" class="text-2xl font-bold text-rdr-gold cinzel">0 / 77</span>
+                    </div>
+                    <div onclick="switchTab('story')" class="bg-rdr-dark/60 border border-rdr-border p-4 rounded-lg cursor-pointer hover:border-rdr-gold transition">
+                        <span class="text-xs text-gray-400 block uppercase">Story Missions</span>
+                        <span id="stat-story" class="text-2xl font-bold text-rdr-gold cinzel">0 / 104</span>
+                    </div>
+                    <div onclick="switchTab('challenges')" class="bg-rdr-dark/60 border border-rdr-border p-4 rounded-lg cursor-pointer hover:border-rdr-gold transition">
+                        <span class="text-xs text-gray-400 block uppercase">Challenge Ranks</span>
+                        <span id="stat-challenges" class="text-2xl font-bold text-rdr-gold cinzel">0 / 90</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips & 100% Requirements summary -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-rdr-card border border-rdr-border rounded-xl p-6">
+                    <h3 class="text-lg font-bold cinzel text-rdr-gold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation"></i> Official 100% Requirements
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-300 list-disc list-inside">
+                        <li>Complete all 104 Story Missions.</li>
+                        <li>Find 50 Animals, 10 Fish, 6 Gang Hideouts, 10 Treasure Maps & Discoveries.</li>
+                        <li>Complete all 90 Challenge tiers across 9 categories.</li>
+                        <li>Discover 5 Shacks, 30 Points of Interest, and 20 Gravesites.</li>
+                        <li>Complete 5 Stranger Mission questlines and acquire 25 random encounters.</li>
+                        <li>Attain Maximum Honor and complete all optional Honor missions.</li>
+                    </ul>
+                </div>
+                <div class="bg-rdr-card border border-rdr-border rounded-xl p-6">
+                    <h3 class="text-lg font-bold cinzel text-rdr-gold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb"></i> Compendium Notes
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-300 list-disc list-inside">
+                        <li><strong>64 Weapons:</strong> Includes all revolvers, pistols, repeaters, rifles, shotguns, sniper rifles, melee weapons, and throwables. Some are missable or tied to specific chapters.</li>
+                        <li><strong>77 Equipment Items:</strong> Encompasses all satchels, holsters, gun belts, bandoliers, trinkets, talismans, camp upgrades, and crafted trapper equipment.</li>
+                        <li>Click any item checkbox to instantly save your progress. Use the search bar in each tab to locate specific items.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- WEAPONS TAB -->
+        <section id="tab-content-weapons" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-rdr-card border border-rdr-border p-4 rounded-xl">
+                <div>
+                    <h2 class="text-xl font-bold cinzel text-rdr-paper">Compendium: Weapons (64 Total)</h2>
+                    <p class="text-xs text-gray-400">Track all revolvers, pistols, rifles, shotguns, and melee arms.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" id="search-weapons" oninput="filterWeapons()" placeholder="Search weapons..." class="bg-rdr-dark border border-rdr-border rounded-lg pl-9 pr-4 py-2 text-sm w-full sm:w-64 focus:outline-none focus:border-rdr-gold">
+                    </div>
+                    <select id="filter-weapons-category" onchange="filterWeapons()" class="bg-rdr-dark border border-rdr-border rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-rdr-gold">
+                        <option value="all">All Categories</option>
+                        <option value="Revolver">Revolvers</option>
+                        <option value="Pistol">Pistols</option>
+                        <option value="Repeater">Repeaters</option>
+                        <option value="Rifle">Rifles</option>
+                        <option value="Shotgun">Shotguns</option>
+                        <option value="Sniper">Sniper Rifles</option>
+                        <option value="Melee">Melee</option>
+                        <option value="Throwable">Throwables</option>
+                    </select>
+                    <button onclick="toggleAllCategory('weapons', true)" class="text-xs bg-rdr-dark border border-rdr-border hover:border-rdr-gold px-3 py-2 rounded-lg transition">Check All</button>
+                    <button onclick="toggleAllCategory('weapons', false)" class="text-xs bg-rdr-dark border border-rdr-border hover:border-rdr-gold px-3 py-2 rounded-lg transition">Uncheck All</button>
+                </div>
+            </div>
+
+            <div id="weapons-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+        <!-- EQUIPMENT TAB -->
+        <section id="tab-content-equipment" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-rdr-card border border-rdr-border p-4 rounded-xl">
+                <div>
+                    <h2 class="text-xl font-bold cinzel text-rdr-paper">Compendium & Crafting: Equipment (77 Total)</h2>
+                    <p class="text-xs text-gray-400">Track all satchels, holsters, bandoliers, trinkets, talismans, and trapper gear.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" id="search-equipment" oninput="filterEquipment()" placeholder="Search equipment..." class="bg-rdr-dark border border-rdr-border rounded-lg pl-9 pr-4 py-2 text-sm w-full sm:w-64 focus:outline-none focus:border-rdr-gold">
+                    </div>
+                    <select id="filter-equipment-category" onchange="filterEquipment()" class="bg-rdr-dark border border-rdr-border rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-rdr-gold">
+                        <option value="all">All Categories</option>
+                        <option value="Satchel">Satchels</option>
+                        <option value="Holster">Holsters & Belts</option>
+                        <option value="Bandolier">Bandoliers</option>
+                        <option value="Trinket">Trinkets</option>
+                        <option value="Talisman">Talismans</option>
+                        <option value="Trapper">Trapper Garments/Sets</option>
+                    </select>
+                    <button onclick="toggleAllCategory('equipment', true)" class="text-xs bg-rdr-dark border border-rdr-border hover:border-rdr-gold px-3 py-2 rounded-lg transition">Check All</button>
+                    <button onclick="toggleAllCategory('equipment', false)" class="text-xs bg-rdr-dark border border-rdr-border hover:border-rdr-gold px-3 py-2 rounded-lg transition">Uncheck All</button>
+                </div>
+            </div>
+
+            <div id="equipment-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+        <!-- STORY MISSIONS TAB -->
+        <section id="tab-content-story" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-rdr-card border border-rdr-border p-4 rounded-xl">
+                <div>
+                    <h2 class="text-xl font-bold cinzel text-rdr-paper">Story Missions (104 Total)</h2>
+                    <p class="text-xs text-gray-400">Track story progression from Chapter 1 through Epilogue 2.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <select id="filter-story-chapter" onchange="filterStory()" class="bg-rdr-dark border border-rdr-border rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-rdr-gold">
+                        <option value="all">All Chapters</option>
+                        <option value="Chapter 1">Chapter 1: Colter</option>
+                        <option value="Chapter 2">Chapter 2: Horseshoe Overlook</option>
+                        <option value="Chapter 3">Chapter 3: Clemens Point</option>
+                        <option value="Chapter 4">Chapter 4: Saint Denis</option>
+                        <option value="Chapter 5">Chapter 5: Guarma</option>
+                        <option value="Chapter 6">Chapter 6: Beaver Hollow</option>
+                        <option value="Epilogue 1">Epilogue 1: Pronghorn Ranch</option>
+                        <option value="Epilogue 2">Epilogue 2: Beecher's Hope</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="story-container" class="space-y-6">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+        <!-- CHALLENGES TAB -->
+        <section id="tab-content-challenges" class="tab-content hidden space-y-6">
+            <div class="bg-rdr-card border border-rdr-border p-4 rounded-xl">
+                <h2 class="text-xl font-bold cinzel text-rdr-paper">Challenges (90 Tiers Across 9 Sets)</h2>
+                <p class="text-xs text-gray-400">Complete all 10 ranks in each of the 9 challenge categories to achieve 100%.</p>
+            </div>
+
+            <div id="challenges-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+        <!-- 100% CHECKLIST TAB -->
+        <section id="tab-content-collectibles" class="tab-content hidden space-y-6">
+            <div class="bg-rdr-card border border-rdr-border p-4 rounded-xl">
+                <h2 class="text-xl font-bold cinzel text-rdr-paper">Official 100% Completion Checklist (26 Core Categories)</h2>
+                <p class="text-xs text-gray-400">The game's official tracking list required to unlock the "Endless Summer" achievement/trophy.</p>
+            </div>
+
+            <div id="checklist-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden">
+        <div class="bg-rdr-card border border-rdr-border p-6 rounded-xl max-w-md w-full mx-4 shadow-2xl">
+            <h3 class="text-lg font-bold cinzel text-rdr-paper mb-2">Reset All Progress?</h3>
+            <p class="text-sm text-gray-300 mb-6">This will wipe all checked weapons, equipment, story missions, challenges, and checklist items. This action cannot be undone.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeResetModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition">Cancel</button>
+                <button onclick="confirmReset()" class="px-4 py-2 bg-rdr-red hover:bg-red-800 text-white rounded-lg text-sm transition font-medium">Reset Everything</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-rdr-card border-t border-rdr-border py-6 mt-12 text-center text-xs text-gray-400">
+        <p>Red Dead Redemption 2 is a registered trademark of Rockstar Games. This interactive ledger & tracker is built for community completionists.</p>
+    </footer>
+
+    <!-- JavaScript Data and Application Logic -->
+    <script>
+        // --- DATA DEFINITIONS ---
+
+        // 64 Weapons Data
+        const weaponsData = [
+            // Revolvers (8)
+            { id: 'w1', name: 'Cattleman Revolver', cat: 'Revolver', note: 'Standard sidearm, available from Chapter 1.' },
+            { id: 'w2', name: 'Double-Action Revolver', cat: 'Revolver', note: 'Found in chests or purchased after Chapter 2.' },
+            { id: 'w3', name: 'Schofield Revolver', cat: 'Revolver', note: 'Rob the doctor back room in Valentine or buy from Chapter 2.' },
+            { id: 'w4', name: 'Flaco\'s Revolver', cat: 'Revolver', note: 'Dropped by Flaco Hernandez (Nobreills of a Man stranger).' },
+            { id: 'w5', name: 'Granger\'s Revolver', cat: 'Revolver', note: 'Dropped by Emmet Granger (Nobreills of a Man stranger).' },
+            { id: 'w6', name: 'Highroller Revolver', cat: 'Revolver', note: 'Purchased from any Fence after Chapter 4.' },
+            { id: 'w7', name: 'Calloway\'s Revolver', cat: 'Revolver', note: 'Dropped by Slim Calloway at the end of Nobreills of a Man.' },
+            { id: 'w8', name: 'Micah\'s Revolver', cat: 'Revolver', note: 'Found at Mt. Hagen after completing American Venom (Epilogue).' },
+
+            // Pistols (5)
+            { id: 'w9', name: 'Volcanic Pistol', cat: 'Pistol', note: 'Purchased from gunsmiths starting in Chapter 2.' },
+            { id: 'w10', name: 'Semi-Automatic Pistol', cat: 'Pistol', note: 'Purchased from gunsmiths in Saint Denis / Valentine from Chapter 4.' },
+            { id: 'w11', name: 'Mauser Pistol', cat: 'Pistol', note: 'Purchased from gunsmiths in Saint Denis from Chapter 4 onwards.' },
+            { id: 'w12', name: 'Midnight\'s Pistol', cat: 'Pistol', note: 'Dropped by Billy Midnight (Nobreills of a Man stranger).' },
+            { id: 'w13', name: 'M1899 Pistol', cat: 'Pistol', note: 'Available at Saint Denis gunsmith starting in Chapter 4.' },
+
+            // Repeaters (4)
+            { id: 'w14', name: 'Carbine Repeater', cat: 'Repeater', note: 'Standard repeater given during Chapter 1.' },
+            { id: 'w15', name: 'Lancaster Repeater', cat: 'Repeater', note: 'Free from gunsmith basement in Rhodes or purchase in Chapter 2.' },
+            { id: 'w16', name: 'Litchfield Repeater', cat: 'Repeater', note: 'Acquired during Chapter 6 (Goodbye, Dear Friend) or gunsmiths.' },
+            { id: 'w17', name: 'Evans Repeater', cat: 'Repeater', note: 'Purchased from any gunsmith or fences after update.' },
+
+            // Rifles (4)
+            { id: 'w18', name: 'Varmint Rifle', cat: 'Rifle', note: 'Purchased from any gunsmith from Chapter 1/2.' },
+            { id: 'w19', name: 'Springfield Rifle', cat: 'Rifle', note: 'Purchased from gunsmiths from Chapter 2.' },
+            { id: 'w20', name: 'Bolt Action Rifle', cat: 'Rifle', note: 'Acquired during Chapter 2 mission (The Sheep and the Goats) or bought.' },
+            { id: 'w21', name: 'Elephant Rifle', cat: 'Rifle', note: 'Purchased from gunsmiths (added in PC/Console updates).' },
+
+            // Shotguns (6)
+            { id: 'w22', name: 'Sawed-Off Shotgun', cat: 'Shotgun', note: 'Available from Chapter 1/2 gunsmiths or world loot.' },
+            { id: 'w23', name: 'Double-Barreled Shotgun', cat: 'Shotgun', note: 'Found in remote cabins or gunsmiths from Chapter 2.' },
+            { id: 'w24', name: 'Pump-Action Shotgun', cat: 'Shotgun', note: 'Found in a basement robbery at Watson\'s Cabin (Chapter 2).' },
+            { id: 'w25', name: 'Semi-Auto Shotgun', cat: 'Shotgun', note: 'Found inside a cabin basement north of Wallace Station.' },
+            { id: 'w26', name: 'Repeating Shotgun', cat: 'Shotgun', note: 'Purchased from gunsmiths from Chapter 3 onwards.' },
+            { id: 'w27', name: 'Rare Shotgun', cat: 'Shotgun', note: 'Dropped by Hermit living at Manito Glade (Missable if not looted).' },
+
+            // Sniper Rifles (2)
+            { id: 'w28', name: 'Rolling Block Rifle', cat: 'Sniper', note: 'Acquired during Chapter 2 mission (Sheep and Goats).' },
+            { id: 'w29', name: 'Carcano Rifle', cat: 'Sniper', note: 'Acquired during Chapter 6 mission (The Del Lobo Gang / Favored Sons).' },
+
+            // Melee Weapons (21)
+            { id: 'w30', name: 'Hunting Knife', cat: 'Melee', note: 'Standard equipment.' },
+            { id: 'w31', name: 'Ancient Tomahawk', cat: 'Melee', note: 'Stuck in a target tree east of Calumet Ravine.' },
+            { id: 'w32', name: 'Broken Pirate Sword', cat: 'Melee', note: 'Found in a wrecked boat south of Saint Denis.' },
+            { id: 'w33', name: 'Civil War Knife', cat: 'Melee', note: 'Found in the basement of Fort Brennand.' },
+            { id: 'w34', name: 'Double Bit Hatchet', cat: 'Melee', note: 'Embedded in a tree stump near Wallace Station.' },
+            { id: 'w35', name: 'Hewing Hatchet', cat: 'Melee', note: 'Embedded in a tree stump near Moonstone Pond.' },
+            { id: 'w36', name: 'Hunter Hatchet', cat: 'Melee', note: 'Embedded in a tree stump near Window Rock.' },
+            { id: 'w37', name: 'Rusty Hatchet', cat: 'Melee', note: 'Embedded in a tree stump near O\'Creagh\'s Run.' },
+            { id: 'w38', name: 'Viking Hatchet', cat: 'Melee', note: 'Found at Viking Burial site north of Annesburg.' },
+            { id: 'w39', name: 'Worn Hatchet', cat: 'Melee', note: 'Embedded in a tree stump near Owanjila.' },
+            { id: 'w40', name: 'Broad Axe', cat: 'Melee', note: 'Found at Eligian Pool / near shack.' },
+            { id: 'w41', name: 'Rusty Pocket Watch / Cleaver', cat: 'Melee', note: 'Meat cleaver found near houses in Van Horn.' },
+            { id: 'w42', name: 'Machete', cat: 'Melee', note: 'Found at Abe\'s Cabin / stolen from enemies.' },
+            { id: 'w43', name: 'Jawbone Knife', cat: 'Melee', note: 'Crafted at Fence after completing Fence side activity.' },
+            { id: 'w44', name: 'Rusted Double Bit Hatchet', cat: 'Melee', note: 'Found stuck in an old tree stump in Roanoke Ridge.' },
+            { id: 'w45', name: 'Rusted Hunter Hatchet', cat: 'Melee', note: 'Found stuck in a tree near Three Sisters.' },
+            { id: 'w46', name: 'Poison Poppy\'s Staff', cat: 'Melee', note: 'Found inside a hidden moonshiner shack up north.' },
+            { id: 'w47', name: 'Ornate Dagger', cat: 'Melee', note: 'Looted from vampire in Saint Denis alleyway.' },
+            { id: 'w48', name: 'Lantern', cat: 'Melee', note: 'Standard light source.' },
+            { id: 'w49', name: 'Electric Lantern', cat: 'Melee', note: 'Found in the underground cave lab at Doverhill.' },
+            { id: 'w50', name: 'Mining Hat', cat: 'Melee', note: 'Found in Beryl\'s Dream mine.' },
+
+            // Throwables (14)
+            { id: 'w51', name: 'Tomahawk', cat: 'Throwable', note: 'Purchased from Fences.' },
+            { id: 'w52', name: 'Improved Tomahawk', cat: 'Throwable', note: 'Crafted using Tomahawk & Hawk feathers.' },
+            { id: 'w53', name: 'Homing Tomahawk', cat: 'Throwable', note: 'Crafted using Tomahawk & Owl feathers.' },
+            { id: 'w54', name: 'Throwing Knife', cat: 'Throwable', note: 'Purchased from Fences or trappers.' },
+            { id: 'w55', name: 'Improved Throwing Knife', cat: 'Throwable', note: 'Crafted using Knife & feathers.' },
+            { id: 'w56', name: 'Poison Throwing Knife', cat: 'Throwable', note: 'Crafted using Knife & oleander sage.' },
+            { id: 'w57', name: 'Dynamite', cat: 'Throwable', note: 'Purchased from general stores or fences.' },
+            { id: 'w58', name: 'Volatile Dynamite', cat: 'Throwable', note: 'Crafted using dynamite, animal fat, high octane whiskey.' },
+            { id: 'w59', name: 'Fire Bottle', cat: 'Throwable', note: 'Crafted using moonshine & animal fat.' },
+            { id: 'w60', name: 'Volatile Fire Bottle', cat: 'Throwable', note: 'Crafted using moonshine, animal fat, sage.' },
+            { id: 'w61', name: 'Bow', cat: 'Throwable', note: 'Acquired in Chapter 1.' },
+            { id: 'w62', name: 'Fire Arrow', cat: 'Throwable', note: 'Crafted using arrows and animal fat.' },
+            { id: 'w63', name: 'Dynamite Arrow', cat: 'Throwable', note: 'Crafted using arrows, dynamite, feathers.' },
+            { id: 'w64', name: 'Small Game Arrow', cat: 'Throwable', note: 'Crafted using arrows, shotgun shells, feathers.' }
+        ];
+
+        // 77 Equipment Data
+        const equipmentData = [
+            // Satchels (8)
+            { id: 'e1', name: 'East of the Edge Satchel', cat: 'Satchel', note: 'Ultimate crafted satchel holding 99 of everything (requires all other satchels).' },
+            { id: 'e2', name: 'Legend of the East Satchel', cat: 'Satchel', note: 'Crafted by Pearson at camp after completing all other satchel upgrades.' },
+            { id: 'e3', name: 'Valuables Satchel', cat: 'Satchel', note: 'Crafted at camp by Pearson (Tier 1).' },
+            { id: 'e4', name: 'Provisions Satchel', cat: 'Satchel', note: 'Crafted at camp by Pearson (Tier 2).' },
+            { id: 'e5', name: 'Materials Satchel', cat: 'Satchel', note: 'Crafted at camp by Pearson (Tier 3).' },
+            { id: 'e6', name: 'Tonics Satchel', cat: 'Satchel', note: 'Crafted at camp by Pearson (Tier 4).' },
+            { id: 'e7', name: 'Ingredients Satchel', cat: 'Satchel', note: 'Crafted at camp by Pearson (Tier 5).' },
+            { id: 'e8', name: 'Kit Satchel', cat: 'Satchel', note: 'Crafted at camp by Pearson (Tier 6).' },
+
+            // Holsters & Gun Belts (16)
+            { id: 'e9', name: 'Starter Gun Belt', cat: 'Holster', note: 'Default Arthur equipment.' },
+            { id: 'e10', name: 'Starter Holster', cat: 'Holster', note: 'Default Arthur equipment.' },
+            { id: 'e11', name: 'Master Hunter Gun Belt', cat: 'Holster', note: 'Reward from Master Hunter Challenges.' },
+            { id: 'e12', name: 'Master Hunter Holster', cat: 'Holster', note: 'Reward from Master Hunter Challenges.' },
+            { id: 'e13', name: 'Weapon Expert Gun Belt', cat: 'Holster', note: 'Reward from Weapons Expert Challenges.' },
+            { id: 'e14', name: 'Weapon Expert Holster', cat: 'Holster', note: 'Reward from Weapons Expert Challenges.' },
+            { id: 'e15', name: 'Survivalist Gun Belt', cat: 'Holster', note: 'Reward from Survivalist Challenges.' },
+            { id: 'e16', name: 'Survivalist Holster', cat: 'Holster', note: 'Reward from Survivalist Challenges.' },
+            { id: 'e17', name: 'Gambler Gun Belt', cat: 'Holster', note: 'Reward from Gambler Challenges.' },
+            { id: 'e18', name: 'Gambler Holster', cat: 'Holster', note: 'Reward from Gambler Challenges.' },
+            { id: 'e19', name: 'Horseman Gun Belt', cat: 'Holster', note: 'Reward from Horseman Challenges.' },
+            { id: 'e20', name: 'Horseman Holster', cat: 'Holster', note: 'Reward from Horseman Challenges.' },
+            { id: 'e21', name: 'Sharpshooter Gun Belt', cat: 'Holster', note: 'Reward from Sharpshooter Challenges.' },
+            { id: 'e22', name: 'Sharpshooter Holster', cat: 'Holster', note: 'Reward from Sharpshooter Challenges.' },
+            { id: 'e23', name: 'Explorer Gun Belt', cat: 'Holster', note: 'Reward from Explorer Challenges.' },
+            { id: 'e24', name: 'Explorer Holster', cat: 'Holster', note: 'Reward from Explorer Challenges.' },
+
+            // Bandoliers (9)
+            { id: 'e25', name: 'Starter Bandolier', cat: 'Bandolier', note: 'Purchased or unlocked via progression.' },
+            { id: 'e26', name: 'Master Hunter Bandolier', cat: 'Bandolier', note: 'Unlocked via Master Hunter challenge progression.' },
+            { id: 'e27', name: 'Weapon Expert Bandolier', cat: 'Bandolier', note: 'Unlocked via Weapon Expert challenge progression.' },
+            { id: 'e28', name: 'Survivalist Bandolier', cat: 'Bandolier', note: 'Unlocked via Survivalist challenge progression.' },
+            { id: 'e29', name: 'Gambler Bandolier', cat: 'Bandolier', note: 'Unlocked via Gambler challenge progression.' },
+            { id: 'e30', name: 'Horseman Bandolier', cat: 'Bandolier', note: 'Unlocked via Horseman challenge progression.' },
+            { id: 'e31', name: 'Sharpshooter Bandolier', cat: 'Bandolier', note: 'Unlocked via Sharpshooter challenge progression.' },
+            { id: 'e32', name: 'Explorer Bandolier', cat: 'Bandolier', note: 'Unlocked via Explorer challenge progression.' },
+            { id: 'e33', name: 'Rattlesnake Bandolier', cat: 'Bandolier', note: 'Crafted at Trapper using snake skins.' },
+
+            // Trinkets (15)
+            { id: 'e34', name: 'Crow Feather Trinket', cat: 'Trinket', note: 'Reduces stamina depletion (Collected from mission reward).' },
+            { id: 'e35', name: 'Hawk Talon Trinket', cat: 'Trinket', note: 'Permanently increases bow stamina drain speed.' },
+            { id: 'e36', name: 'Iguana Scale Trinket', cat: 'Trinket', note: 'Reduces horse damage taken by 10%.' },
+            { id: 'e37', name: 'Killian Buck Antler Trinket', cat: 'Trinket', note: 'Upgrades quality of skinned animal pelts.' },
+            { id: 'e38', name: 'Lion\'s Paw Trinket', cat: 'Trinket', note: 'Increases stamina experience by 10%.' },
+            { id: 'e39', name: 'Owl Feather Trinket', cat: 'Trinket', note: 'Slows core drain while on horseback.' },
+            { id: 'e40', name: 'Panther\'s Eye Trinket', cat: 'Trinket', note: 'Slows dead-eye drain speed by 10%.' },
+            { id: 'e41', name: 'Alligator Tooth Trinket', cat: 'Trinket', note: 'Reduces Dead Eye core drain by 10%.' },
+            { id: 'e42', name: 'Bear Claw Trinket', cat: 'Trinket', note: 'Reduces health core drain speed by 10%.' },
+            { id: 'e43', name: 'Bison Horn Trinket', cat: 'Trinket', note: 'Reduces stamina core drain speed by 10%.' },
+            { id: 'e44', name: 'Boar Tusk Trinket', cat: 'Trinket', note: 'Slows horse health/stamina drain by 10%.' },
+            { id: 'e45', name: 'Cougar Fang Trinket', cat: 'Trinket', note: 'Increases dead-eye experience by 10%.' },
+            { id: 'e46', name: 'Elk Antler Trinket', cat: 'Trinket', note: 'Increases cash looted from enemies by 10%.' },
+            { id: 'e47', name: 'Fox Claw Trinket', cat: 'Trinket', note: 'Increases eagle eye duration.' },
+            { id: 'e48', name: 'Wolf Heart Trinket', cat: 'Trinket', note: 'Allows consuming double alcohol without adverse effects.' },
+
+            // Talismans (8)
+            { id: 'e49', name: 'Boar Tusk Talisman', cat: 'Talisman', note: 'Slows horse health/stamina drain rate.' },
+            { id: 'e50', name: 'Bison Horn Talisman', cat: 'Talisman', note: 'Permanently decreases stamina bar drain by 10%.' },
+            { id: 'e51', name: 'Raven Claw Talisman', cat: 'Talisman', note: 'Slows weapon degradation rate by 20%.' },
+            { id: 'e52', name: 'Shark Tooth Talisman', cat: 'Talisman', note: 'Increases horse bonding speed by 10%.' },
+            { id: 'e53', name: 'Turtle Shell Talisman', cat: 'Talisman', note: 'Increases health bar regeneration speed by 10%.' },
+            { id: 'e54', name: 'Eagle Talon Talisman', cat: 'Talisman', note: 'Increases Eagle Eye duration.' },
+            { id: 'e55', name: 'Magpie Talisman', cat: 'Talisman', note: 'Increases loot quality/quantity.' },
+            { id: 'e56', name: 'Cat Eye Trinket/Talisman', cat: 'Talisman', note: 'Permanently increases tonic effectiveness.' },
+
+            // Trapper Garments & Sets (21)
+            { id: 'e57', name: 'The Marauder Trapper Outfit', cat: 'Trapper', note: 'Crafted at Trapper using pelts.' },
+            { id: 'e58', name: 'The Stalker Trapper Outfit', cat: 'Trapper', note: 'Crafted at Trapper using legendary pelts.' },
+            { id: 'e59', name: 'The Wrangler Trapper Outfit', cat: 'Trapper', note: 'Crafted at Trapper using animal skins.' },
+            { id: 'e60', name: 'The Drover Trapper Outfit', cat: 'Trapper', note: 'Crafted at Trapper.' },
+            { id: 'e61', name: 'The Rustler Trapper Outfit', cat: 'Trapper', note: 'Crafted at Trapper.' },
+            { id: 'e62', name: 'The Bounty Hunter Outfit', cat: 'Trapper', note: 'Crafted at Trapper.' },
+            { id: 'e63', name: 'The Pathfinder Outfit', cat: 'Trapper', note: 'Crafted at Trapper.' },
+            { id: 'e64', name: 'The Mountain Man Outfit', cat: 'Trapper', note: 'Crafted at Trapper.' },
+            { id: 'e65', name: 'Legendary Bear Head Hat', cat: 'Trapper', note: 'Crafted with Legendary Bear pelt.' },
+            { id: 'e66', name: 'Legendary Panther Cloak', cat: 'Trapper', note: 'Crafted with Legendary Panther pelt.' },
+            { id: 'e67', name: 'Legendary Pronghorn Coat', cat: 'Trapper', note: 'Crafted with Legendary Pronghorn hide.' },
+            { id: 'e68', name: 'Legendary Elk Moccasins', cat: 'Trapper', note: 'Crafted with Legendary Elk skin.' },
+            { id: 'e69', name: 'Legendary Bison Vest', cat: 'Trapper', note: 'Crafted with Legendary Tatanka Bison pelt.' },
+            { id: 'e70', name: 'Legendary Buck Vest', cat: 'Trapper', note: 'Crafted with Legendary Buck hide.' },
+            { id: 'e71', name: 'Legendary Cougar Vest', cat: 'Trapper', note: 'Crafted with Legendary Cougar pelt.' },
+            { id: 'e72', name: 'Legendary Boar & Wolf Coat', cat: 'Trapper', note: 'Crafted at Trapper.' },
+            { id: 'e73', name: 'Legendary Beaver Hat', cat: 'Trapper', note: 'Crafted with Legendary Beaver pelt.' },
+            { id: 'e74', name: 'Legendary Ram Hat', cat: 'Trapper', note: 'Crafted with Legendary Bighorn Ram hide.' },
+            { id: 'e75', name: 'Legendary Fox Hat', cat: 'Trapper', note: 'Crafted with Legendary Fox pelt.' },
+            { id: 'e76', name: 'Legendary Moose Hunting Jacket', cat: 'Trapper', note: 'Crafted with Legendary Moose pelt.' },
+            { id: 'e77', name: 'Legendary Alligator Tooth Hat', cat: 'Trapper', note: 'Crafted with Legendary Gator skin.' }
+        ];
+
+        // Story Missions Data (104 total grouped by chapter)
+        const storyData = [
+            {
+                chapter: "Chapter 1",
+                name: "Colter",
+                missions: [
+                    "Outlaws from the West", "Enter, Pursued by a Memory", "The Aftermath of Genesis",
+                    "Old Friends", "The Genesis of a Noble Man", "Eastward Bound"
+                ]
+            },
+            {
+                chapter: "Chapter 2",
+                name: "Horseshoe Overlook",
+                missions: [
+                    "The Spines of America", "Americans at Rest", "Exit Pursued by a Bruised Ego",
+                    "A Quiet Time", "Money Lending and Other Sins I, II, III", "Blessed are the Meek?",
+                    "The First Shall Be Last", "Social Call", "Good, Honest, Snake Oil",
+                    "Polite Society, Valentine Style", "An American Pastoral Scene", "The Sheep and the Goats",
+                    "A Strange Kindness"
+                ]
+            },
+            {
+                chapter: "Chapter 3",
+                name: "Clemens Point",
+                missions: [
+                    "The New South", "Further Questions of Female Suffrage", "The Course of True Love I, II, III",
+                    "American Distillation", "Advertising, the New American Art I, II, III, IV, V",
+                    "Horse Flesh for Dinner", "The Fine Joys of Tobacco", "Magicians for Sport",
+                    "Sodom? Back to Gomorrah", "Blessed are the Peacemakers", "A Short Walk in a Pretty Town",
+                    "Blood Feuds, Ancient and Modern", "Battle of Shady Belle"
+                ]
+            },
+            {
+                chapter: "Chapter 4",
+                name: "Saint Denis",
+                missions: [
+                    "The Joys of Civilization", "A Fine Night For Debauchery", "The Gilded Cage",
+                    "No, No and Thrice, No", "American Fathers I, II", "Urban Pleasures",
+                    "Country Pursuits", "Revenge is a Dish Best Eaten", "Banking, the Old American Art",
+                    "The Merciful Kindred"
+                ]
+            },
+            {
+                chapter: "Chapter 5",
+                name: "Guarma",
+                missions: [
+                    "Hell Hath No Fury", "Welcome to the New World", "Savagery Unleashed",
+                    "A Kind and Benevolent Despot", "Profane Honor", "Dear Uncle Tim",
+                    "Fleeting Joy", "A Fork in the Road"
+                ]
+            },
+            {
+                chapter: "Chapter 6",
+                name: "Beaver Hollow",
+                missions: [
+                    "Icarus and Friends", "Visiting Hours", "Just a Social Call",
+                    "The Fine Art of Conversation", "Goodbye, Dear Friend", "Favorite Sons",
+                    "The Bridge to Nowhere", "The Del Lobo Gang / Archeology for Beginners",
+                    "Honor, Amongst Thieves", "The King's Son", "My Last Son",
+                    "Our Best Selves", "Red Dead Redemption"
+                ]
+            },
+            {
+                chapter: "Epilogue 1",
+                name: "Pronghorn Ranch",
+                missions: [
+                    "Wheel", "Bar", "A Quick Favor for an Old Friend", "Fatherhood and Other Dreams",
+                    "The Tool Shed", "Jim Milton Rides, Again?", "Motherhood", "Simple Pleasures",
+                    "Ordinary Sins", "Farming, The First Exercise", "Home of the Gentry?"
+                ]
+            },
+            {
+                chapter: "Epilogue 2",
+                name: "Beecher's Hope",
+                missions: [
+                    "Trying Again", "A New Jerusalem", "A Quick Favor for an Old Friend",
+                    "An Honest Day's Labors", "The Land of Opportunity", "Gainful Employment",
+                    "The Noblest of Men, and a Woman", "Uncles Bad Day", "An Honest Error",
+                    "A New Future Imagined", "American Venom"
+                ]
+            }
+        ];
+
+        // Challenges Data (9 categories, 10 ranks each = 90 total)
+        const challengeCategories = [
+            { id: 'c-bandit', name: 'Bandit', desc: 'Rob citizens, coaches, and trains.' },
+            { id: 'c-explorer', name: 'Explorer', desc: 'Find treasure maps and gold treasures.' },
+            { id: 'c-gambler', name: 'Gambler', desc: 'Win games of Poker, Blackjack, Dominoes, and Five Finger Fillet.' },
+            { id: 'c-herbalist', name: 'Herbalist', desc: 'Pick plants and pick flowers across the wilderness.' },
+            { id: 'c-masterhunter', name: 'Master Hunter', desc: 'Hunt legendary animals and track various game species.' },
+            { id: 'c-horseman', name: 'Horseman', desc: 'Ride across states within time limits and jump obstacles.' },
+            { id: 'c-sharpshooter', name: 'Sharpshooter', desc: 'Shoot hats off, birds in flight, and disarm enemies.' },
+            { id: 'c-survivalist', name: 'Survivalist', desc: 'Catch fish, craft explosive ammo, and hunt with bow.' },
+            { id: 'c-weaponexpert', name: 'Weapon Expert', desc: 'Kill enemies with knives, tomahawks, and dynamite.' }
+        ];
+
+        // Official 100% Checklist Categories (26 items)
+        const checklistCategories = [
+            { id: 'chk-1', name: 'Complete 104 Story Missions' },
+            { id: 'chk-2', name: 'Complete 10 Stranger Mission Strand chains' },
+            { id: 'chk-3', name: 'Encounter 5 Bounty Hunter / Random World Events' },
+            { id: 'chk-4', name: 'Complete 5 Gang Hideouts' },
+            { id: 'chk-5', name: 'Discover 6 Hidden Shacks' },
+            { id: 'chk-6', name: 'Acquire 5 Legendary Animals' },
+            { id: 'chk-7', name: 'Catch 10 Legendary Fish' },
+            { id: 'chk-8', name: 'Collect all 20 Gravesites of Fallen Gang Members' },
+            { id: 'chk-9', name: 'Discover all 30 Points of Interest' },
+            { id: 'chk-10', name: 'Collect 1 Full Set of Cigarette Cards' },
+            { id: 'chk-11', name: 'Collect 1 Set of Dinosaur Bones (30 total)' },
+            { id: 'chk-12', name: 'Collect all Rock Carvings (10 total)' },
+            { id: 'chk-13', name: 'Complete all Treasure Map Hunts' },
+            { id: 'chk-14', name: 'Complete all 90 Challenge Tiers' },
+            { id: 'chk-15', name: 'Find 50 Unique Animal Species in Compendium' },
+            { id: 'chk-16', name: 'Find 10 Unique Equipment items' },
+            { id: 'chk-17', name: 'Discover 10 Fish Species' },
+            { id: 'chk-18', name: 'Discover 6 Gang Types in Compendium' },
+            { id: 'chk-19', name: 'Discover 10 Horse Breeds' },
+            { id: 'chk-20', name: 'Discover all 60 Weapons in Compendium' },
+            { id: 'chk-21', name: 'Reach Maximum Honor Level' },
+            { id: 'chk-22', name: 'Master All Horse Bonding Levels to 4' },
+            { id: 'chk-23', name: 'Fully Upgrade Camp Lodging & Ledger' },
+            { id: 'chk-24', name: 'Take Bath in Every Town' },
+            { id: 'chk-25', name: 'Attend Theater Show in Saint Denis / Valentine' },
+            { id: 'chk-26', name: 'Order Meal at Saloons across all towns' }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let userState = {
+            weapons: {},
+            equipment: {},
+            story: {},
+            challenges: {},
+            checklist: {}
+        };
+
+        // Load from LocalStorage
+        function loadState() {
+            const saved = localStorage.getItem('rdr2_tracker_state_v2');
+            if (saved) {
+                try {
+                    userState = JSON.parse(saved);
+                } catch(e) {
+                    console.error('Error parsing saved state', e);
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('rdr2_tracker_state_v2', JSON.stringify(userState));
+            updateAllCounters();
+        }
+
+        // --- RENDER FUNCTIONS ---
+
+        function renderWeapons() {
+            const grid = document.getElementById('weapons-grid');
+            const search = document.getElementById('search-weapons').value.toLowerCase();
+            const catFilter = document.getElementById('filter-weapons-category').value;
+
+            grid.innerHTML = '';
+            weaponsData.forEach(w => {
+                if (catFilter !== 'all' && w.cat !== catFilter) return;
+                if (search && !w.name.toLowerCase().includes(search) && !w.note.toLowerCase().includes(search)) return;
+
+                const isChecked = !!userState.weapons[w.id];
+                const card = document.createElement('div');
+                card.className = `bg-rdr-card border rounded-xl p-4 flex flex-col justify-between transition ${isChecked ? 'border-rdr-gold/50 bg-rdr-card/80 opacity-75' : 'border-rdr-border hover:border-rdr-gold'}`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <label class="flex items-start gap-3 cursor-pointer select-none">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('weapons', '${w.id}')" class="mt-1 w-4 h-4 rounded bg-rdr-dark border-rdr-border text-amber-600 focus:ring-0 cursor-pointer accent-amber-600">
+                                <span class="font-semibold text-rdr-paper ${isChecked ? 'line-through text-gray-400' : ''}">${w.name}</span>
+                            </label>
+                            <span class="text-xs px-2 py-0.5 rounded bg-rdr-dark border border-rdr-border text-rdr-gold uppercase tracking-wider">${w.cat}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 ml-7">${w.note}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderEquipment() {
+            const grid = document.getElementById('equipment-grid');
+            const search = document.getElementById('search-equipment').value.toLowerCase();
+            const catFilter = document.getElementById('filter-equipment-category').value;
+
+            grid.innerHTML = '';
+            equipmentData.forEach(e => {
+                if (catFilter !== 'all' && e.cat !== catFilter) return;
+                if (search && !e.name.toLowerCase().includes(search) && !e.note.toLowerCase().includes(search)) return;
+
+                const isChecked = !!userState.equipment[e.id];
+                const card = document.createElement('div');
+                card.className = `bg-rdr-card border rounded-xl p-4 flex flex-col justify-between transition ${isChecked ? 'border-rdr-gold/50 bg-rdr-card/80 opacity-75' : 'border-rdr-border hover:border-rdr-gold'}`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <label class="flex items-start gap-3 cursor-pointer select-none">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('equipment', '${e.id}')" class="mt-1 w-4 h-4 rounded bg-rdr-dark border-rdr-border text-amber-600 focus:ring-0 cursor-pointer accent-amber-600">
+                                <span class="font-semibold text-rdr-paper ${isChecked ? 'line-through text-gray-400' : ''}">${e.name}</span>
+                            </label>
+                            <span class="text-xs px-2 py-0.5 rounded bg-rdr-dark border border-rdr-border text-rdr-gold uppercase tracking-wider">${e.cat}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 ml-7">${e.note}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderStory() {
+            const container = document.getElementById('story-container');
+            const chapterFilter = document.getElementById('filter-story-chapter').value;
+
+            container.innerHTML = '';
+            storyData.forEach((ch, chIdx) => {
+                if (chapterFilter !== 'all' && ch.chapter !== chapterFilter) return;
+
+                let completedCount = 0;
+                ch.missions.forEach(m => {
+                    if (userState.story[`ch_${chIdx}_${m}`]) completedCount++;
+                });
+
+                const section = document.createElement('div');
+                section.className = 'bg-rdr-card border border-rdr-border rounded-xl p-5';
+                
+                let missionsHTML = '';
+                ch.missions.forEach((m, mIdx) => {
+                    const key = `ch_${chIdx}_${m}`;
+                    const isChecked = !!userState.story[key];
+                    missionsHTML += `
+                        <label class="flex items-center gap-3 p-2 rounded hover:bg-rdr-dark/40 cursor-pointer transition select-none">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleStoryMission('${key}')" class="w-4 h-4 rounded bg-rdr-dark border-rdr-border text-amber-600 focus:ring-0 cursor-pointer accent-amber-600">
+                            <span class="text-sm ${isChecked ? 'line-through text-gray-500' : 'text-gray-200'}">${m}</span>
+                        </label>
+                    `;
+                });
+
+                section.innerHTML = `
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-rdr-border">
+                        <div>
+                            <h3 class="font-bold cinzel text-rdr-gold text-lg">${ch.chapter}: ${ch.name}</h3>
+                            <span class="text-xs text-gray-400">Missions completed: ${completedCount} / ${ch.missions.length}</span>
+                        </div>
+                        <button onclick="toggleChapter(${chIdx}, true)" class="text-xs text-rdr-gold hover:underline">Complete Chapter</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        ${missionsHTML}
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function renderChallenges() {
+            const container = document.getElementById('challenges-container');
+            container.innerHTML = '';
+
+            challengeCategories.forEach(cat => {
+                let ranksCompleted = 0;
+                for (let i = 1; i <= 10; i++) {
+                    if (userState.challenges[`${cat.id}_rank_${i}`]) ranksCompleted++;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-rdr-card border border-rdr-border rounded-xl p-5 flex flex-col justify-between';
+                
+                let ranksHTML = '';
+                for (let i = 1; i <= 10; i++) {
+                    const key = `${cat.id}_rank_${i}`;
+                    const isChecked = !!userState.challenges[key];
+                    ranksHTML += `
+                        <label class="flex items-center gap-2 p-1 text-xs cursor-pointer select-none hover:bg-rdr-dark/30 rounded">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleChallenge('${key}')" class="w-3.5 h-3.5 rounded bg-rdr-dark border-rdr-border text-amber-600 focus:ring-0 cursor-pointer accent-amber-600">
+                            <span class="${isChecked ? 'line-through text-gray-500' : 'text-gray-300'}">Rank ${i}</span>
+                        </label>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold cinzel text-rdr-gold">${cat.name}</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-rdr-dark border border-rdr-border text-gray-300">${ranksCompleted}/10</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-4">${cat.desc}</p>
+                        <div class="grid grid-cols-2 gap-1 mb-4">
+                            ${ranksHTML}
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-rdr-border flex justify-between">
+                        <button onclick="toggleChallengeSet('${cat.id}', true)" class="text-xs text-rdr-gold hover:underline">Complete All</button>
+                        <button onclick="toggleChallengeSet('${cat.id}', false)" class="text-xs text-gray-400 hover:underline">Reset</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderChecklist() {
+            const grid = document.getElementById('checklist-grid');
+            grid.innerHTML = '';
+
+            checklistCategories.forEach(item => {
+                const isChecked = !!userState.checklist[item.id];
+                const card = document.createElement('div');
+                card.className = `bg-rdr-card border rounded-xl p-4 flex items-center gap-4 transition ${isChecked ? 'border-rdr-gold/50 bg-rdr-card/80 opacity-75' : 'border-rdr-border hover:border-rdr-gold'}`;
+                card.innerHTML = `
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('checklist', '${item.id}')" class="w-5 h-5 rounded bg-rdr-dark border-rdr-border text-amber-600 focus:ring-0 cursor-pointer accent-amber-600">
+                    <span class="font-medium text-sm sm:text-base text-rdr-paper ${isChecked ? 'line-through text-gray-400' : ''}">${item.name}</span>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- ACTIONS & INTERACTION ---
+
+        function toggleItem(category, id) {
+            userState[category][id] = !userState[category][id];
+            saveState();
+            updateAllCounters();
+        }
+
+        function toggleStoryMission(key) {
+            userState.story[key] = !userState.story[key];
+            saveState();
+            updateAllCounters();
+        }
+
+        function toggleChallenge(key) {
+            userState.challenges[key] = !userState.challenges[key];
+            saveState();
+            updateAllCounters();
+        }
+
+        function toggleChallengeSet(catId, status) {
+            for (let i = 1; i <= 10; i++) {
+                userState.challenges[`${catId}_rank_${i}`] = status;
+            }
+            saveState();
+            renderChallenges();
+            updateAllCounters();
+        }
+
+        function toggleChapter(chIdx, status) {
+            const ch = storyData[chIdx];
+            ch.missions.forEach(m => {
+                userState.story[`ch_${chIdx}_${m}`] = status;
+            });
+            saveState();
+            renderStory();
+            updateAllCounters();
+        }
+
+        function toggleAllCategory(category, status) {
+            if (category === 'weapons') {
+                weaponsData.forEach(w => userState.weapons[w.id] = status);
+                renderWeapons();
+            } else if (category === 'equipment') {
+                equipmentData.forEach(e => userState.equipment[e.id] = status);
+                renderEquipment();
+            }
+            saveState();
+            updateAllCounters();
+        }
+
+        function updateAllCounters() {
+            // Count weapons
+            const weaponsCount = weaponsData.filter(w => userState.weapons[w.id]).length;
+            document.getElementById('count-weapons-nav').innerText = weaponsCount;
+            document.getElementById('stat-weapons').innerText = `${weaponsCount} / 64`;
+
+            // Count equipment
+            const equipmentCount = equipmentData.filter(e => userState.equipment[e.id]).length;
+            document.getElementById('count-equipment-nav').innerText = equipmentCount;
+            document.getElementById('stat-equipment').innerText = `${equipmentCount} / 77`;
+
+            // Count story missions (total 104)
+            let totalStory = 0;
+            storyData.forEach((ch, chIdx) => {
+                ch.missions.forEach(m => {
+                    if (userState.story[`ch_${chIdx}_${m}`]) totalStory++;
+                });
+            });
+            document.getElementById('count-story-nav').innerText = totalStory;
+            document.getElementById('stat-story').innerText = `${totalStory} / 104`;
+
+            // Count challenges (total 90)
+            let totalChallenges = 0;
+            challengeCategories.forEach(cat => {
+                for (let i = 1; i <= 10; i++) {
+                    if (userState.challenges[`${cat.id}_rank_${i}`]) totalChallenges++;
+                }
+            });
+            document.getElementById('count-challenges-nav').innerText = totalChallenges;
+            document.getElementById('stat-challenges').innerText = `${totalChallenges} / 90`;
+
+            // Count official checklist (total 26)
+            const checklistCount = checklistCategories.filter(c => userState.checklist[c.id]).length;
+            document.getElementById('count-checklist-nav').innerText = checklistCount;
+
+            // Global percentage calculation
+            const grandTotalItems = 64 + 77 + 104 + 90 + 26; // 361 total tracker units
+            const grandChecked = weaponsCount + equipmentCount + totalStory + totalChallenges + checklistCount;
+            const percentage = ((grandChecked / grandTotalItems) * 100).toFixed(1);
+
+            document.getElementById('global-percentage').innerText = `${percentage}%`;
+            document.getElementById('global-progress-bar').style.width = `${percentage}%`;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active', 'text-rdr-gold'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.add('text-gray-400'));
+
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('tab-active', 'text-rdr-gold');
+                activeBtn.classList.remove('text-gray-400');
+            }
+        }
+
+        function filterWeapons() { renderWeapons(); }
+        function filterEquipment() { renderEquipment(); }
+        function filterStory() { renderStory(); }
+
+        function resetDataModal() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function confirmReset() {
+            userState = { weapons: {}, equipment: {}, story: {}, challenges: {}, checklist: {} };
+            saveState();
+            closeResetModal();
+            renderWeapons();
+            renderEquipment();
+            renderStory();
+            renderChallenges();
+            renderChecklist();
+            updateAllCounters();
+        }
+
+        // Initialize application on load
+        window.onload = function() {
+            loadState();
+            renderWeapons();
+            renderEquipment();
+            renderStory();
+            renderChallenges();
+            renderChecklist();
+            updateAllCounters();
+        };
+    </script>
+</body>
+</html>
